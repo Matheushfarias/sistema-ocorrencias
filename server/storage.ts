@@ -42,18 +42,125 @@ function generateOccurrenceCode(): string {
   return `BO-${year}-${random}`;
 }
 
+export class MemStorage implements IStorage {
+  private users: Map<string, User> = new Map();
+  private occurrences: Map<string, Occurrence> = new Map();
+  private messages: Map<string, Message[]> = new Map();
+  private statusHistories: Map<string, StatusHistory[]> = new Map();
+  private media: Map<string, OccurrenceMedia[]> = new Map();
+  private userIdCounter = 1;
+  private occurrenceIdCounter = 1;
+  private messageIdCounter = 1;
+  private statusHistoryIdCounter = 1;
+  private mediaIdCounter = 1;
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.email === email);
+  }
+
+  async getUserByMatricula(matricula: string, instituicao: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.matricula === matricula && u.instituicao === instituicao);
+  }
+
+  async createUser(user: Omit<User, "id" | "createdAt">): Promise<User> {
+    const id = String(this.userIdCounter++);
+    const newUser: User = { ...user, id, createdAt: new Date() };
+    this.users.set(id, newUser);
+    return newUser;
+  }
+
+  async getOccurrence(id: string): Promise<Occurrence | undefined> {
+    return this.occurrences.get(id);
+  }
+
+  async getOccurrenceByCode(codigo: string): Promise<Occurrence | undefined> {
+    return Array.from(this.occurrences.values()).find(o => o.codigo === codigo);
+  }
+
+  async getOccurrencesByCidadao(cidadaoId: string): Promise<Occurrence[]> {
+    return Array.from(this.occurrences.values()).filter(o => o.cidadaoId === cidadaoId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getOccurrencesByInstituicao(instituicao: string): Promise<Occurrence[]> {
+    return Array.from(this.occurrences.values()).filter(o => o.tipoEmergencia === instituicao).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async createOccurrence(occurrence: Omit<Occurrence, "id" | "codigo" | "createdAt" | "updatedAt">): Promise<Occurrence> {
+    const id = String(this.occurrenceIdCounter++);
+    const codigo = generateOccurrenceCode();
+    const now = new Date();
+    const newOccurrence: Occurrence = { ...occurrence, id, codigo, createdAt: now, updatedAt: now };
+    this.occurrences.set(id, newOccurrence);
+    return newOccurrence;
+  }
+
+  async updateOccurrenceStatus(id: string, status: string): Promise<Occurrence | undefined> {
+    const occ = this.occurrences.get(id);
+    if (!occ) return undefined;
+    const updated = { ...occ, status: status as any, updatedAt: new Date() };
+    this.occurrences.set(id, updated);
+    return updated;
+  }
+
+  async getMessages(occurrenceId: string): Promise<Message[]> {
+    return this.messages.get(occurrenceId) || [];
+  }
+
+  async createMessage(message: Omit<Message, "id" | "createdAt">): Promise<Message> {
+    const id = String(this.messageIdCounter++);
+    const newMessage: Message = { ...message, id, createdAt: new Date() };
+    const msgs = this.messages.get(message.occurrenceId) || [];
+    msgs.push(newMessage);
+    this.messages.set(message.occurrenceId, msgs);
+    return newMessage;
+  }
+
+  async getStatusHistory(occurrenceId: string): Promise<StatusHistory[]> {
+    return (this.statusHistories.get(occurrenceId) || []).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async createStatusHistory(history: Omit<StatusHistory, "id" | "createdAt">): Promise<StatusHistory> {
+    const id = String(this.statusHistoryIdCounter++);
+    const newHistory: StatusHistory = { ...history, id, createdAt: new Date() };
+    const histories = this.statusHistories.get(history.occurrenceId) || [];
+    histories.push(newHistory);
+    this.statusHistories.set(history.occurrenceId, histories);
+    return newHistory;
+  }
+
+  async getMediaByOccurrence(occurrenceId: string): Promise<OccurrenceMedia[]> {
+    return this.media.get(occurrenceId) || [];
+  }
+
+  async createMedia(media: Omit<OccurrenceMedia, "id" | "createdAt">): Promise<OccurrenceMedia> {
+    const id = String(this.mediaIdCounter++);
+    const newMedia: OccurrenceMedia = { ...media, id, createdAt: new Date() };
+    const mediaList = this.media.get(media.occurrenceId) || [];
+    mediaList.push(newMedia);
+    this.media.set(media.occurrenceId, mediaList);
+    return newMedia;
+  }
+}
+
 export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
+    if (!db) return undefined;
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
+    if (!db) return undefined;
     const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
     return result[0];
   }
 
   async getUserByMatricula(matricula: string, instituicao: string): Promise<User | undefined> {
+    if (!db) return undefined;
     const result = await db
       .select()
       .from(users)
@@ -63,6 +170,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: Omit<User, "id" | "createdAt">): Promise<User> {
+    if (!db) return { id: String(Math.random()), ...user, createdAt: new Date() };
     const result = await db.insert(users).values(user).returning();
     return result[0];
   }
