@@ -1,0 +1,319 @@
+Quero que você desenvolva um sistema web completo, funcional e conectado ao banco de dados, chamado BO.Militar, baseado exatamente nas telas apresentadas, incluindo login, cadastro, painel do cidadão, painel do atendente, registro de ocorrências, visualização, chat e atualização de status.
+
+O sistema deve possuir front-end, back-end e banco de dados plenamente integrados.
+
+Utilizar:
+
+Front-end moderno (React ou equivalente)
+
+Back-end em API REST (Node.js / Express ou similar)
+
+Banco de dados relacional (MySQL, PostgreSQL ou SQLite)
+
+Autenticação com senha criptografada e JWT
+
+Separação por perfil de acesso: CIDADÃO e ATENDENTE (PM / Bombeiros)
+
+TELAS DE LOGIN
+
+Criar tela inicial exatamente como as imagens, com o título:
+BO.Militar – Emergências ao seu alcance
+
+Deve existir a escolha entre:
+
+Cidadão – Registrar e acompanhar ocorrências
+
+Atendente (PM/Bombeiros) – Receber e atender chamados
+
+LOGIN CIDADÃO:
+Campos:
+
+Email
+
+Senha
+Botões:
+
+Entrar
+
+Não tem conta? Cadastre-se
+
+LOGIN ATENDENTE:
+Campos:
+
+Instituição (Polícia Militar / Corpo de Bombeiros)
+
+Matrícula / Identificação
+
+Senha
+Botões:
+
+Entrar
+
+Não tem conta? Cadastre-se
+
+CADASTRO DE USUÁRIO
+
+CADASTRO CIDADÃO:
+Campos:
+
+Nome Completo
+
+CPF
+
+Telefone
+
+Email
+
+Senha
+
+Confirmar senha
+
+Mostrar mensagem de aviso:
+"Seus dados serão utilizados apenas para identificação em casos de emergência."
+
+CADASTRO ATENDENTE:
+Campos:
+
+Nome Completo
+
+Instituição
+
+Matrícula / Identificação
+
+Telefone
+
+Email
+
+Senha
+
+Confirmar senha
+
+Mensagem:
+"Acesso restrito a servidores públicos autorizados das corporações."
+
+PAINEL DO CIDADÃO
+
+Tela principal:
+Texto de alerta em vermelho:
+"Emergência? Use o botão abaixo para registrar uma nova ocorrência e acionar as autoridades."
+
+Botão grande:
+Registrar Nova Ocorrência
+
+Cards:
+
+Meus B.O.s
+
+Chat com a central
+
+REGISTRAR OCORRÊNCIA
+
+Formulário completo:
+
+Tipo de Emergência:
+
+Polícia Militar
+
+Corpo de Bombeiros
+
+Tipo de Ocorrência (select):
+Roubo, Furto, Acidente, Incêndio, Briga, Desastre, Perturbação, Atendimento médico
+
+Localização:
+
+Botão "Capturar localização atual"
+
+Armazenar latitude, longitude e endereço
+
+Descrição:
+Campo de texto grande
+
+Upload:
+Fotos e vídeos opcionais
+
+Ao enviar:
+Status inicial: AGUARDANDO
+Registrar automaticamente data, hora e usuário.
+
+PAINEL DO ATENDENTE
+
+Mostrar no topo:
+
+Instituição
+
+Nome
+
+Matrícula
+
+Cards:
+
+Aguardando
+
+Em atendimento
+
+Resolvidos hoje
+
+Tempo médio
+
+Box vermelho:
+"Ocor­rên­cias pendentes"
+Botão "Ver ocorrências"
+
+Acesso rápido:
+
+Todas ocorrências
+
+Chat com cidadãos
+
+Protocolo visível:
+
+Avaliar prioridade
+
+Atualizar status
+
+Comunicar cidadão
+
+Encerrar ocorrência
+
+LISTA DE OCORRÊNCIAS (ATENDENTE)
+
+Filtros:
+
+Todas
+
+Aguardando
+
+Despachado
+
+Em atendimento
+
+Cada ocorrência mostra:
+
+Status
+
+Tipo
+
+Nome do cidadão
+
+Endereço
+
+Telefone
+
+Tempo desde o registro
+
+Código da ocorrência
+
+Clique abre detalhes.
+
+DETALHE DA OCORRÊNCIA
+
+Mostrar:
+
+Rotas:
+Botões Google Maps e Waze
+
+Dados do cidadão:
+Nome e telefone com botão ligar e chat
+
+Dados:
+Tipo da ocorrência
+Descrição
+Endereço
+Data e hora
+Coordenadas
+
+Evidências:
+Fotos e vídeos
+
+Atualização de status:
+Select:
+Aguardando
+Despachado
+Em atendimento
+Concluído
+
+Campo observações
+Salvar atualização
+Registrar histórico.
+
+CHAT ENTRE CIDADÃO E CENTRAL
+
+Chat em tempo real:
+
+Mensagens salvas no banco
+Separadas por ocorrência
+Com:
+remetente
+mensagem
+data/hora
+
+Mensagem automática inicial:
+"Olá, sou o assistente virtual do BO.Militar. Como posso ajudar?"
+
+Cidadão pode:
+
+Ver status
+
+Enviar mensagens
+
+Adicionar informações
+
+Atendente pode:
+
+Responder
+
+Ver histórico
+
+Encerrar atendimento
+
+BANCO DE DADOS
+
+Criar tabelas:
+
+USUÁRIOS
+OCORRÊNCIAS
+MÍDIAS DA OCORRÊNCIA
+MENSAGENS
+HISTÓRICO DE STATUS
+
+Relacionadas corretamente.
+
+REGRAS IMPORTANTES
+
+Cidadão só vê suas ocorrências
+
+Atendente vê todas da sua instituição
+
+Senhas criptografadas
+
+Sessão segura
+
+Interface idêntica às imagens
+
+Sistema funcional do início ao fim
+
+APIs bem organizadas
+
+Upload funcionando
+
+Chat funcionando
+
+Dashboard calculado dinamicamente
+
+RESULTADO FINAL
+
+Quero:
+
+Código completo do front-end
+
+Código do back-end
+
+Scripts do banco
+
+Instruções de instalação
+
+Projeto funcional
+
+Pronto para rodar localmente
+
+Arquitetura organizada
