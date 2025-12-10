@@ -28,28 +28,15 @@ interface OccurrenceFormProps {
   isSubmitting?: boolean;
 }
 
-const tiposOcorrenciaPM = [
+const tiposOcorrencia = [
   "Roubo",
   "Furto",
-  "Briga",
-  "Perturbação",
-  "Ameaça",
-  "Violência Doméstica",
-  "Vandalismo",
-  "Tráfico de Drogas",
-  "Porte Ilegal de Arma",
-];
-
-const tiposOcorrenciaBombeiros = [
+  "Acidente",
   "Incêndio",
-  "Desastre Natural",
-  "Resgate",
-  "Afogamento",
-  "Atendimento Médico",
-  "Acidente de Trânsito",
-  "Vazamento de Gás",
-  "Desabamento",
-  "Salvamento em Altura",
+  "Briga",
+  "Desastre",
+  "Perturbação",
+  "Atendimento médico",
 ];
 
 export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false }: OccurrenceFormProps) {
@@ -130,10 +117,7 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
                   type="button"
                   variant={tipoEmergencia === "pm" ? "default" : "outline"}
                   className={`h-auto py-4 ${tipoEmergencia === "pm" ? "bg-pm hover:bg-pm/90" : ""}`}
-                  onClick={() => {
-                    setTipoEmergencia("pm");
-                    setTipoOcorrencia("");
-                  }}
+                  onClick={() => setTipoEmergencia("pm")}
                   data-testid="button-tipo-pm"
                 >
                   <Shield className="w-5 h-5 mr-2" />
@@ -143,10 +127,7 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
                   type="button"
                   variant={tipoEmergencia === "bombeiros" ? "default" : "outline"}
                   className={`h-auto py-4 ${tipoEmergencia === "bombeiros" ? "bg-bombeiros hover:bg-bombeiros/90" : ""}`}
-                  onClick={() => {
-                    setTipoEmergencia("bombeiros");
-                    setTipoOcorrencia("");
-                  }}
+                  onClick={() => setTipoEmergencia("bombeiros")}
                   data-testid="button-tipo-bombeiros"
                 >
                   <Flame className="w-5 h-5 mr-2" />
@@ -157,16 +138,12 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
 
             <div className="space-y-2">
               <Label htmlFor="tipoOcorrencia">Tipo de Ocorrência</Label>
-              <Select 
-                value={tipoOcorrencia} 
-                onValueChange={setTipoOcorrencia}
-                disabled={!tipoEmergencia}
-              >
+              <Select value={tipoOcorrencia} onValueChange={setTipoOcorrencia}>
                 <SelectTrigger data-testid="select-tipo-ocorrencia">
-                  <SelectValue placeholder={tipoEmergencia ? "Selecione o tipo" : "Selecione primeiro o tipo de emergência"} />
+                  <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(tipoEmergencia === "pm" ? tiposOcorrenciaPM : tiposOcorrenciaBombeiros).map((tipo) => (
+                  {tiposOcorrencia.map((tipo) => (
                     <SelectItem key={tipo} value={tipo.toLowerCase()}>
                       {tipo}
                     </SelectItem>

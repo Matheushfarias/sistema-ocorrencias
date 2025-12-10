@@ -176,16 +176,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOccurrence(id: string): Promise<Occurrence | undefined> {
+    if (!db) return undefined;
     const result = await db.select().from(occurrences).where(eq(occurrences.id, id)).limit(1);
     return result[0];
   }
 
   async getOccurrenceByCode(codigo: string): Promise<Occurrence | undefined> {
+    if (!db) return undefined;
     const result = await db.select().from(occurrences).where(eq(occurrences.codigo, codigo)).limit(1);
     return result[0];
   }
 
   async getOccurrencesByCidadao(cidadaoId: string): Promise<Occurrence[]> {
+    if (!db) return [];
     return db
       .select()
       .from(occurrences)
@@ -194,6 +197,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOccurrencesByInstituicao(instituicao: string): Promise<Occurrence[]> {
+    if (!db) return [];
     return db
       .select()
       .from(occurrences)
@@ -202,6 +206,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOccurrence(occurrence: Omit<Occurrence, "id" | "codigo" | "createdAt" | "updatedAt">): Promise<Occurrence> {
+    if (!db) {
+      const codigo = generateOccurrenceCode();
+      const now = new Date();
+      return { id: String(Math.random()), ...occurrence, codigo, createdAt: now, updatedAt: now };
+    }
     const codigo = generateOccurrenceCode();
     const result = await db
       .insert(occurrences)
@@ -211,6 +220,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateOccurrenceStatus(id: string, status: string): Promise<Occurrence | undefined> {
+    if (!db) return undefined;
     const result = await db
       .update(occurrences)
       .set({ status: status as any, updatedAt: new Date() })
@@ -220,6 +230,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(occurrenceId: string): Promise<Message[]> {
+    if (!db) return [];
     return db
       .select()
       .from(messages)
@@ -228,11 +239,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMessage(message: Omit<Message, "id" | "createdAt">): Promise<Message> {
+    if (!db) {
+      return { id: String(Math.random()), ...message, createdAt: new Date() };
+    }
     const result = await db.insert(messages).values(message).returning();
     return result[0];
   }
 
   async getStatusHistory(occurrenceId: string): Promise<StatusHistory[]> {
+    if (!db) return [];
     return db
       .select()
       .from(statusHistory)
@@ -241,18 +256,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStatusHistory(history: Omit<StatusHistory, "id" | "createdAt">): Promise<StatusHistory> {
+    if (!db) {
+      return { id: String(Math.random()), ...history, createdAt: new Date() };
+    }
     const result = await db.insert(statusHistory).values(history).returning();
     return result[0];
   }
 
   async getMediaByOccurrence(occurrenceId: string): Promise<OccurrenceMedia[]> {
+    if (!db) return [];
     return db.select().from(occurrenceMedia).where(eq(occurrenceMedia.occurrenceId, occurrenceId));
   }
 
   async createMedia(media: Omit<OccurrenceMedia, "id" | "createdAt">): Promise<OccurrenceMedia> {
+    if (!db) {
+      return { id: String(Math.random()), ...media, createdAt: new Date() };
+    }
     const result = await db.insert(occurrenceMedia).values(media).returning();
     return result[0];
   }
 }
 
-export const storage = new DatabaseStorage();
+const memStorage = new MemStorage();
+const dbStorage = new DatabaseStorage();
+export const storage = db ? dbStorage : memStorage;
