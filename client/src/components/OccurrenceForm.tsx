@@ -61,24 +61,33 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
           
           try {
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
             );
             const data = await response.json();
-            const address = data.address?.road || data.address?.street || data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            const addr = data.address || {};
+            
+            // Montar endereço completo: rua número, bairro, cidade
+            const partes = [];
+            if (addr.road) partes.push(addr.road);
+            if (addr.house_number) partes.push(addr.house_number);
+            if (addr.suburb || addr.neighbourhood) partes.push(addr.suburb || addr.neighbourhood);
+            if (addr.city || addr.town) partes.push(addr.city || addr.town);
+            
+            const address = partes.length > 0 ? partes.join(", ") : data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
             setEndereco(address);
           } catch (error) {
             console.error("Error getting address:", error);
-            setEndereco(`${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+            setEndereco(`Localização capturada: ${lat.toFixed(6)}, ${lon.toFixed(6)}`);
           } finally {
             setLoadingLocation(false);
           }
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Não foi possível obter localização. Por favor, insira manualmente.");
+          alert("Não foi possível obter localização. Por favor, insira manualmente ou ative GPS.");
           setLoadingLocation(false);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     }
   };
