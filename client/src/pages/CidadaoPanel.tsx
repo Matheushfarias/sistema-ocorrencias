@@ -226,6 +226,7 @@ export default function CidadaoPanel({ userName, userId, onLogout }: CidadaoPane
             }
           }}
           isAtendente={false}
+          evidencias={(selectedOccurrence?.media || []).map((m) => `/uploads/${m.filename}`)}
         />
       )}
 

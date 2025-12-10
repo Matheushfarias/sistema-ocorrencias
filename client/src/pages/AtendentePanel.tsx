@@ -123,6 +123,7 @@ export default function AtendentePanel({ nome, matricula, instituicao, onLogout 
     id: selectedOccurrence.id,
     codigo: selectedOccurrence.codigo,
     tipo: selectedOccurrence.tipoOcorrencia,
+    media: selectedOccurrence.media || [],
     tipoEmergencia: selectedOccurrence.tipoEmergencia,
     status: selectedOccurrence.status,
     cidadaoNome: selectedOccurrence.cidadao?.nome || "Cidadão",
@@ -196,6 +197,7 @@ export default function AtendentePanel({ nome, matricula, instituicao, onLogout 
             }
           }}
           isAtendente={true}
+          evidencias={(transformedSelectedOccurrence.media || []).map((m: any) => `/uploads/${m.filename}`)}
         />
       )}
 

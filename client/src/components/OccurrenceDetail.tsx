@@ -178,9 +178,13 @@ export default function OccurrenceDetail({
                   {evidencias.map((url, index) => (
                     <div
                       key={index}
-                      className="aspect-square bg-muted rounded-md flex items-center justify-center"
+                      className="aspect-square bg-muted rounded-md overflow-hidden"
                     >
-                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                      {url.includes('.mp4') || url.includes('.webm') ? (
+                        <video src={url} className="w-full h-full object-cover" data-testid={`video-evidencia-${index}`} />
+                      ) : (
+                        <img src={url} alt={`Evidência ${index + 1}`} className="w-full h-full object-cover" data-testid={`image-evidencia-${index}`} />
+                      )}
                     </div>
                   ))}
                 </div>
