@@ -49,15 +49,29 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
   const [arquivos, setArquivos] = useState<File[]>([]);
   const [loadingLocation, setLoadingLocation] = useState(false);
 
-  const handleCapturarLocalizacao = () => {
+  const handleCapturarLocalizacao = async () => {
     setLoadingLocation(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatitude(position.coords.latitude);
-          setLongitude(position.coords.longitude);
-          setEndereco(`Lat: ${position.coords.latitude.toFixed(6)}, Long: ${position.coords.longitude.toFixed(6)}`);
-          setLoadingLocation(false);
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          setLatitude(lat);
+          setLongitude(lon);
+          
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+            );
+            const data = await response.json();
+            const address = data.address?.road || data.address?.street || data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            setEndereco(address);
+          } catch (error) {
+            console.error("Error getting address:", error);
+            setEndereco(`${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+          } finally {
+            setLoadingLocation(false);
+          }
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -155,11 +169,11 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
             </div>
 
             <div className="space-y-2">
-              <Label>Localização</Label>
+              <Label>Localização Atual</Label>
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Digite o endereço ou coordenadas (ex: Rua..., ou -23.5505,-46.6333)"
+                    placeholder="Clique no botão para obter sua localização atual"
                     value={endereco}
                     onChange={(e) => setEndereco(e.target.value)}
                     data-testid="input-endereco"
@@ -170,7 +184,7 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
                     onClick={handleCapturarLocalizacao}
                     disabled={loadingLocation}
                     data-testid="button-capturar-localizacao"
-                    title="Capturar localização por GPS (alta precisão)"
+                    title="Obter localização atual via GPS"
                   >
                     {loadingLocation ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -180,12 +194,12 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
                   </Button>
                 </div>
                 {latitude && longitude && (
-                  <p className="text-xs text-muted-foreground">
-                    Coordenadas capturadas: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                  <p className="text-xs text-green-600">
+                    ✓ Localização capturada
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Dica: Ative GPS no seu dispositivo e aguarde alguns segundos para maior precisão
+                  Ative GPS no seu dispositivo para melhor precisão
                 </p>
               </div>
             </div>
