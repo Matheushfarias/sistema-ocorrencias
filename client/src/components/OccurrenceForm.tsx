@@ -61,8 +61,10 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
         },
         (error) => {
           console.error("Error getting location:", error);
+          alert("Não foi possível obter localização. Por favor, insira manualmente.");
           setLoadingLocation(false);
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
   };
@@ -154,33 +156,38 @@ export default function OccurrenceForm({ onBack, onSubmit, isSubmitting = false 
 
             <div className="space-y-2">
               <Label>Localização</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Capturar localização atual"
-                  value={endereco}
-                  onChange={(e) => setEndereco(e.target.value)}
-                  readOnly
-                  data-testid="input-endereco"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCapturarLocalizacao}
-                  disabled={loadingLocation}
-                  data-testid="button-capturar-localizacao"
-                >
-                  {loadingLocation ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <MapPin className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
-              {latitude && longitude && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Digite o endereço ou coordenadas (ex: Rua..., ou -23.5505,-46.6333)"
+                    value={endereco}
+                    onChange={(e) => setEndereco(e.target.value)}
+                    data-testid="input-endereco"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCapturarLocalizacao}
+                    disabled={loadingLocation}
+                    data-testid="button-capturar-localizacao"
+                    title="Capturar localização por GPS (alta precisão)"
+                  >
+                    {loadingLocation ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <MapPin className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                {latitude && longitude && (
+                  <p className="text-xs text-muted-foreground">
+                    Coordenadas capturadas: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
-                  Coordenadas: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                  Dica: Ative GPS no seu dispositivo e aguarde alguns segundos para maior precisão
                 </p>
-              )}
+              </div>
             </div>
 
             <div className="space-y-2">
