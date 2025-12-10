@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import {
   hashPassword,
   comparePassword,
@@ -66,13 +66,13 @@ export async function registerRoutes(
     try {
       const data = registerCidadaoSchema.parse(req.body);
       
-      const existing = await storage.getUserByEmail(data.email);
+      const existing = await getStorage().getUserByEmail(data.email);
       if (existing) {
         return res.status(400).json({ message: "Email já cadastrado" });
       }
 
       const hashedPassword = await hashPassword(data.password);
-      const user = await storage.createUser({
+      const user = await getStorage().createUser({
         type: "cidadao",
         nome: data.nome,
         email: data.email,
@@ -95,7 +95,7 @@ export async function registerRoutes(
     try {
       const data = loginCidadaoSchema.parse(req.body);
       
-      const user = await storage.getUserByEmail(data.email);
+      const user = await getStorage().getUserByEmail(data.email);
       if (!user || user.type !== "cidadao") {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
@@ -117,18 +117,18 @@ export async function registerRoutes(
     try {
       const data = registerAtendenteSchema.parse(req.body);
       
-      const existing = await storage.getUserByMatricula(data.matricula, data.instituicao);
+      const existing = await getStorage().getUserByMatricula(data.matricula, data.instituicao);
       if (existing) {
         return res.status(400).json({ message: "Matrícula já cadastrada" });
       }
 
-      const existingEmail = await storage.getUserByEmail(data.email);
+      const existingEmail = await getStorage().getUserByEmail(data.email);
       if (existingEmail) {
         return res.status(400).json({ message: "Email já cadastrado" });
       }
 
       const hashedPassword = await hashPassword(data.password);
-      const user = await storage.createUser({
+      const user = await getStorage().createUser({
         type: "atendente",
         nome: data.nome,
         email: data.email,
@@ -151,7 +151,7 @@ export async function registerRoutes(
     try {
       const data = loginAtendenteSchema.parse(req.body);
       
-      const user = await storage.getUserByMatricula(data.matricula, data.instituicao);
+      const user = await getStorage().getUserByMatricula(data.matricula, data.instituicao);
       if (!user || user.type !== "atendente") {
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
@@ -171,7 +171,7 @@ export async function registerRoutes(
 
   app.get("/api/auth/me", authMiddleware, async (req: AuthenticatedRequest, res) => {
     try {
-      const user = await storage.getUser(req.user!.userId);
+      const user = await getStorage().getUser(req.user!.userId);
       if (!user) {
         return res.status(404).json({ message: "Usuário não encontrado" });
       }
@@ -186,7 +186,7 @@ export async function registerRoutes(
     try {
       const data = createOccurrenceSchema.parse(req.body);
       
-      const occurrence = await storage.createOccurrence({
+      const occurrence = await getStorage().createOccurrence({
         cidadaoId: req.user!.userId,
         tipoEmergencia: data.tipoEmergencia,
         tipoOcorrencia: data.tipoOcorrencia,
@@ -197,7 +197,7 @@ export async function registerRoutes(
         longitude: data.longitude.toString(),
       });
 
-      await storage.createStatusHistory({
+      await getStorage().createStatusHistory({
         occurrenceId: occurrence.id,
         userId: req.user!.userId,
         previousStatus: null,
@@ -205,7 +205,7 @@ export async function registerRoutes(
         observacao: "Ocorrência registrada pelo cidadão",
       });
 
-      await storage.createMessage({
+      await getStorage().createMessage({
         occurrenceId: occurrence.id,
         senderId: null,
         role: "sistema",
@@ -221,7 +221,7 @@ export async function registerRoutes(
   app.post("/api/occurrences/:id/media", authMiddleware, upload.array("files", 5), async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const occurrence = await storage.getOccurrence(id);
+      const occurrence = await getStorage().getOccurrence(id);
       
       if (!occurrence) {
         return res.status(404).json({ message: "Ocorrência não encontrada" });
@@ -235,7 +235,7 @@ export async function registerRoutes(
       const mediaRecords = [];
 
       for (const file of files) {
-        const media = await storage.createMedia({
+        const media = await getStorage().createMedia({
           occurrenceId: id,
           filename: file.filename,
           originalName: file.originalname,
@@ -256,14 +256,14 @@ export async function registerRoutes(
       let occurrences;
       
       if (req.user!.type === "cidadao") {
-        occurrences = await storage.getOccurrencesByCidadao(req.user!.userId);
+        occurrences = await getStorage().getOccurrencesByCidadao(req.user!.userId);
       } else {
-        occurrences = await storage.getOccurrencesByInstituicao(req.user!.instituicao!);
+        occurrences = await getStorage().getOccurrencesByInstituicao(req.user!.instituicao!);
       }
 
       const enriched = await Promise.all(
         occurrences.map(async (occ) => {
-          const cidadao = await storage.getUser(occ.cidadaoId);
+          const cidadao = await getStorage().getUser(occ.cidadaoId);
           return {
             ...occ,
             cidadao: cidadao ? { 
@@ -284,7 +284,7 @@ export async function registerRoutes(
   app.get("/api/occurrences/:id", authMiddleware, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const occurrence = await storage.getOccurrence(id);
+      const occurrence = await getStorage().getOccurrence(id);
       
       if (!occurrence) {
         return res.status(404).json({ message: "Ocorrência não encontrada" });
@@ -299,9 +299,9 @@ export async function registerRoutes(
       }
 
       const [cidadao, media, statusHist] = await Promise.all([
-        storage.getUser(occurrence.cidadaoId),
-        storage.getMediaByOccurrence(id),
-        storage.getStatusHistory(id),
+        getStorage().getUser(occurrence.cidadaoId),
+        getStorage().getMediaByOccurrence(id),
+        getStorage().getStatusHistory(id),
       ]);
 
       res.json({
@@ -325,7 +325,7 @@ export async function registerRoutes(
       const { id } = req.params;
       const data = updateStatusSchema.parse(req.body);
       
-      const occurrence = await storage.getOccurrence(id);
+      const occurrence = await getStorage().getOccurrence(id);
       if (!occurrence) {
         return res.status(404).json({ message: "Ocorrência não encontrada" });
       }
@@ -335,9 +335,9 @@ export async function registerRoutes(
       }
 
       const previousStatus = occurrence.status;
-      const updated = await storage.updateOccurrenceStatus(id, data.status);
+      const updated = await getStorage().updateOccurrenceStatus(id, data.status);
 
-      await storage.createStatusHistory({
+      await getStorage().createStatusHistory({
         occurrenceId: id,
         userId: req.user!.userId,
         previousStatus,
@@ -352,7 +352,7 @@ export async function registerRoutes(
       };
 
       if (statusMessages[data.status]) {
-        await storage.createMessage({
+        await getStorage().createMessage({
           occurrenceId: id,
           senderId: null,
           role: "sistema",
@@ -369,7 +369,7 @@ export async function registerRoutes(
   app.get("/api/occurrences/:id/messages", authMiddleware, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const occurrence = await storage.getOccurrence(id);
+      const occurrence = await getStorage().getOccurrence(id);
       
       if (!occurrence) {
         return res.status(404).json({ message: "Ocorrência não encontrada" });
@@ -383,12 +383,12 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      const messages = await storage.getMessages(id);
+      const messages = await getStorage().getMessages(id);
       
       const enrichedMessages = await Promise.all(
         messages.map(async (msg) => {
           if (msg.senderId) {
-            const sender = await storage.getUser(msg.senderId);
+            const sender = await getStorage().getUser(msg.senderId);
             return {
               ...msg,
               senderName: sender?.nome || "Usuário",
@@ -409,7 +409,7 @@ export async function registerRoutes(
       const { id } = req.params;
       const data = sendMessageSchema.parse(req.body);
       
-      const occurrence = await storage.getOccurrence(id);
+      const occurrence = await getStorage().getOccurrence(id);
       if (!occurrence) {
         return res.status(404).json({ message: "Ocorrência não encontrada" });
       }
@@ -422,14 +422,14 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      const message = await storage.createMessage({
+      const message = await getStorage().createMessage({
         occurrenceId: id,
         senderId: req.user!.userId,
         role: req.user!.type,
         content: data.content,
       });
 
-      const user = await storage.getUser(req.user!.userId);
+      const user = await getStorage().getUser(req.user!.userId);
       res.status(201).json({
         ...message,
         senderName: user?.nome || "Usuário",
@@ -441,7 +441,7 @@ export async function registerRoutes(
 
   app.get("/api/stats", authMiddleware, requireAtendente, async (req: AuthenticatedRequest, res) => {
     try {
-      const occurrences = await storage.getOccurrencesByInstituicao(req.user!.instituicao!);
+      const occurrences = await getStorage().getOccurrencesByInstituicao(req.user!.instituicao!);
       
       const stats = {
         aguardando: occurrences.filter(o => o.status === "aguardando").length,
