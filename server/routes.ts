@@ -184,10 +184,20 @@ export async function registerRoutes(
 
   app.post("/api/occurrences", authMiddleware, requireCidadao, async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.user || !req.user.userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
       const data = createOccurrenceSchema.parse(req.body);
       
+      // Verify user exists
+      const user = await getStorage().getUser(req.user.userId);
+      if (!user) {
+        return res.status(401).json({ message: "Usuário não encontrado" });
+      }
+      
       const occurrence = await getStorage().createOccurrence({
-        cidadaoId: req.user!.userId,
+        cidadaoId: req.user.userId,
         tipoEmergencia: data.tipoEmergencia,
         tipoOcorrencia: data.tipoOcorrencia,
         status: "aguardando",
